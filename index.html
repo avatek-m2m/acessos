@@ -2,182 +2,141 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Acessos | Suntech & Avatek</title>
+    <title>Acessos Suntech & Avatek</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .select-sim { color: #10b981; font-weight: 800; }
-        .select-nao { color: #ef4444; font-weight: 500; }
-        .sticky-col { position: sticky; left: 0; background: white; z-index: 5; border-right: 2px solid #e2e8f0; }
-        .group-header { background: #f1f5f9; font-weight: 800; color: #475569; text-transform: uppercase; font-size: 11px; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .select-sim { color: #10b981 !important; font-weight: 800; }
+        .select-nao { color: #ef4444 !important; font-weight: 500; }
+        .group-header { background: #f8fafc; border-left: 4px solid #4f46e5; }
+        .sticky-col { position: sticky; left: 0; background: white; z-index: 10; border-right: 2px solid #f1f5f9; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="bg-[#f1f5f9] min-h-screen pb-20">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 shadow-sm">
         <div class="max-w-full mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
                 <div>
-                    <h1 class="font-bold text-slate-800 leading-none">Matriz de <span class="text-indigo-600">Acessos</span></h1>
-                    <p id="status" class="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-widest transition-all">Sincronizado</p>
+                    <h1 class="text-lg font-bold text-slate-800 leading-none">Controle de <span class="text-indigo-600">Acessos</span></h1>
+                    <p id="status" class="text-[10px] text-slate-400 font-bold uppercase mt-1">Status: Conectado</p>
                 </div>
             </div>
-
-            <div id="filtros-pessoas" class="flex gap-2 overflow-x-auto pb-1 max-w-full custom-scrollbar">
-                <p class="text-[10px] text-slate-400 animate-pulse">Carregando usuários...</p>
-            </div>
+            <div id="filtros" class="flex gap-2 overflow-x-auto max-w-full pb-2"></div>
         </div>
     </nav>
 
-    <main class="p-4 md:p-8">
+    <main class="p-6">
         <div id="loading" class="text-center py-20">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mb-4"></div>
-            <p class="text-slate-400 font-medium animate-pulse">Organizando pastas e permissões...</p>
+            <p class="text-slate-500 font-medium">Validando permissões da planilha...</p>
         </div>
 
-        <div id="container" class="hidden bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto max-h-[75vh] custom-scrollbar">
+        <div id="container" class="hidden bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left text-sm border-separate border-spacing-0">
-                    <thead class="sticky top-0 z-20">
-                        <tr id="thead" class="bg-slate-800 text-white text-[10px] uppercase font-bold tracking-widest">
-                            </tr>
+                    <thead class="sticky top-0 z-30">
+                        <tr id="thead" class="bg-slate-800 text-white text-[10px] uppercase font-bold tracking-widest"></tr>
                     </thead>
-                    <tbody id="tbody" class="divide-y divide-slate-100">
-                        </tbody>
+                    <tbody id="tbody" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwG-DIwG0PIt5kQn2otykgnizm_3cWdyL1N7HSxTBAIqSGUIdaYYayw7-kyxoJd1D1P/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwhthBzrBBVFNfTHCsZa398URTvV7-maAsXQZfP5Im-XD4YY-0BE_yFUQQvi-JxWULS/exec';
         let dadosOriginais = null;
-        let pessoaAtiva = 'TODOS';
+        let pessoaFiltro = 'TODOS';
 
         async function carregar() {
             try {
-                const response = await fetch(API_URL);
-                dadosOriginais = await response.json();
-                if(dadosOriginais.erro) throw new Error(dadosOriginais.erro);
-                
-                gerarFiltrosPessoas(dadosOriginais.colunas);
-                renderizar();
-            } catch (err) {
-                document.getElementById('loading').innerHTML = `<p class="text-red-500 font-bold">⚠️ Erro ao carregar dados: ${err.message}</p>`;
+                const r = await fetch(API_URL);
+                dadosOriginais = await r.json();
+                renderizarFiltros();
+                renderizarTabela();
+            } catch (e) {
+                document.getElementById('loading').innerHTML = '<p class="text-red-500">Erro de conexão.</p>';
             }
         }
 
-        function gerarFiltrosPessoas(colunas) {
-            const container = document.getElementById('filtros-pessoas');
-            // Remove RAIZ e PASTAS da lista de botões de usuários
-            const pessoas = colunas.filter(c => !['RAIZ', 'PASTAS'].includes(c));
-            
-            let html = `<button onclick="filtrarPessoa('TODOS')" class="px-3 py-1 rounded-full text-[10px] font-bold border ${pessoaAtiva === 'TODOS' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'} transition-all hover:border-indigo-400">TODOS</button>`;
-            
-            pessoas.forEach(p => {
-                html += `<button onclick="filtrarPessoa('${p}')" class="px-3 py-1 rounded-full text-[10px] font-bold border ${pessoaAtiva === p ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'} transition-all whitespace-nowrap hover:border-indigo-400">${p}</button>`;
+        function renderizarFiltros() {
+            const container = document.getElementById('filtros');
+            const nomes = dadosOriginais.colunas.filter(c => !['RAIZ', 'PASTAS'].includes(c));
+            let html = `<button onclick="setFiltro('TODOS')" class="px-4 py-1.5 rounded-full text-[10px] font-bold border ${pessoaFiltro === 'TODOS' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}">TODOS</button>`;
+            nomes.forEach(n => {
+                html += `<button onclick="setFiltro('${n}')" class="px-4 py-1.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${pessoaFiltro === n ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}">${n}</button>`;
             });
             container.innerHTML = html;
         }
 
-        function filtrarPessoa(nome) {
-            pessoaAtiva = nome;
-            gerarFiltrosPessoas(dadosOriginais.colunas);
-            renderizar();
+        function setFiltro(nome) {
+            pessoaFiltro = nome;
+            renderizarFiltros();
+            renderizarTabela();
         }
 
-        function renderizar() {
+        function renderizarTabela() {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('container').classList.remove('hidden');
 
             const head = document.getElementById('thead');
             const body = document.getElementById('tbody');
+            const cols = pessoaFiltro === 'TODOS' ? dadosOriginais.colunas : ['RAIZ', 'PASTAS', pessoaFiltro];
 
-            // Determina quais colunas exibir (Sempre RAIZ/PASTAS + Escolha)
-            const colunasVisiveis = pessoaAtiva === 'TODOS' 
-                ? dadosOriginais.colunas 
-                : ['RAIZ', 'PASTAS', pessoaAtiva];
+            head.innerHTML = cols.map(c => `<th class="px-6 py-4 whitespace-nowrap">${c}</th>`).join('');
 
-            head.innerHTML = colunasVisiveis.map(c => `<th class="px-6 py-4 whitespace-nowrap border-b border-slate-700">${c}</th>`).join('');
-
-            // Lógica de Agrupamento por Coluna RAIZ
+            // Agrupamento por RAIZ
             const grupos = {};
-            dadosOriginais.rows.forEach(row => {
-                const raiz = row.RAIZ || 'SEM RAIZ';
-                if (!grupos[raiz]) grupos[raiz] = [];
-                grupos[raiz].push(row);
+            dadosOriginais.rows.forEach(r => {
+                const rKey = r.RAIZ || 'GERAL';
+                if (!grupos[rKey]) grupos[rKey] = [];
+                grupos[rKey].push(r);
             });
 
-            let htmlBody = '';
+            let html = '';
             Object.keys(grupos).sort().forEach(raiz => {
-                // Divisória do Grupo
-                htmlBody += `<tr class="group-header">
-                    <td colspan="${colunasVisiveis.length}" class="px-6 py-2 bg-slate-100 border-y border-slate-200 font-black">📁 RAIZ: ${raiz}</td>
-                </tr>`;
-
+                html += `<tr class="group-header"><td colspan="${cols.length}" class="px-6 py-2 text-[11px] font-black text-indigo-700 bg-indigo-50/50 uppercase tracking-tighter">📁 RAIZ: ${raiz}</td></tr>`;
+                
                 grupos[raiz].forEach(row => {
-                    htmlBody += `<tr class="hover:bg-indigo-50/40 transition-colors">
-                        ${colunasVisiveis.map(col => {
-                            const val = String(row[col]).trim().toUpperCase();
-                            
-                            if (col === 'RAIZ') return `<td class="px-6 py-3 text-slate-400 italic font-medium">${row[col]}</td>`;
-                            if (col === 'PASTAS') return `<td class="px-6 py-3 font-bold text-slate-700 sticky-col">${row[col]}</td>`;
-                            
-                            return `
-                                <td class="px-6 py-3">
-                                    <select onchange="salvar(${row.rowId}, '${col}', this)" 
-                                        class="bg-transparent border-none cursor-pointer focus:ring-0 text-xs font-bold ${val === 'SIM' ? 'select-sim' : 'select-nao'}">
-                                        <option value="SIM" ${val === 'SIM' ? 'selected' : ''}>SIM</option>
-                                        <option value="NÃO" ${val === 'NÃO' || val === 'NAO' ? 'selected' : ''}>NÃO</option>
-                                    </select>
-                                </td>`;
-                        }).join('')}
-                    </tr>`;
+                    html += `<tr class="hover:bg-slate-50 transition-colors">`;
+                    cols.forEach(col => {
+                        const val = String(row[col] || '').trim().toUpperCase();
+                        if (col === 'RAIZ') html += `<td class="px-6 py-3 text-slate-400 text-xs">${row[col]}</td>`;
+                        else if (col === 'PASTAS') html += `<td class="px-6 py-3 font-bold text-slate-700 sticky-col">${row[col]}</td>`;
+                        else {
+                            html += `<td class="px-6 py-3">
+                                <select onchange="salvar(${row.rowId}, '${col}', this)" class="bg-transparent border-none cursor-pointer focus:ring-0 text-xs font-bold ${val === 'SIM' ? 'select-sim' : 'select-nao'}">
+                                    <option value="SIM" ${val === 'SIM' ? 'selected' : ''}>SIM</option>
+                                    <option value="NÃO" ${val !== 'SIM' ? 'selected' : ''}>NÃO</option>
+                                </select>
+                            </td>`;
+                        }
+                    });
+                    html += `</tr>`;
                 });
             });
-            body.innerHTML = htmlBody;
+            body.innerHTML = html;
         }
 
-        async function salvar(rowId, usuario, el) {
+        async function salvar(rowId, col, el) {
             const status = document.getElementById('status');
-            const novoValor = el.value;
-            
-            status.innerText = 'Gravando no Sheets...';
-            status.classList.replace('text-slate-400', 'text-indigo-600');
-            el.classList.add('opacity-30');
+            const val = el.value;
+            status.innerText = 'Salvando...';
+            el.classList.add('opacity-20');
 
             try {
-                // Envia para o POST do Apps Script
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Necessário para evitar erro de CORS do Google
-                    body: JSON.stringify({ rowId, colunaNome: usuario, novoValor })
-                });
-                
-                status.innerText = 'Alteração Salva!';
-                el.className = `bg-transparent border-none cursor-pointer focus:ring-0 text-xs font-bold ${novoValor === 'SIM' ? 'select-sim' : 'select-nao'}`;
-                el.classList.remove('opacity-30');
-                
-                setTimeout(() => {
-                    status.innerText = 'Sincronizado';
-                    status.classList.replace('text-indigo-600', 'text-slate-400');
-                }, 2000);
-            } catch (err) {
-                console.error(err);
-                status.innerText = 'Erro ao salvar!';
-                status.classList.replace('text-indigo-600', 'text-red-500');
-            }
+                await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ rowId, colunaNome: col, novoValor: val })});
+                el.className = `bg-transparent border-none cursor-pointer focus:ring-0 text-xs font-bold ${val === 'SIM' ? 'select-sim' : 'select-nao'}`;
+                status.innerText = 'Sincronizado';
+                el.classList.remove('opacity-20');
+            } catch (e) { status.innerText = 'Erro ao salvar'; }
         }
 
-        // Inicia a aplicação
         carregar();
     </script>
 </body>
